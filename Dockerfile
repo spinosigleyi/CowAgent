@@ -7,4 +7,7 @@ LABEL maintainer="personal-fork"
 # Set a default timezone so logs show local time
 ENV TZ=Asia/Shanghai
 
+# Set Python output to unbuffered so logs appear immediately in docker logs
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT ["/entrypoint.sh"]
