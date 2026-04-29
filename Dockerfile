@@ -10,4 +10,7 @@ ENV TZ=Asia/Shanghai
 # Set Python output to unbuffered so logs appear immediately in docker logs
 ENV PYTHONUNBUFFERED=1
 
+# Increase default log level verbosity for easier debugging during development
+ENV LOG_LEVEL=DEBUG
+
 ENTRYPOINT ["/entrypoint.sh"]
