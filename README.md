@@ -40,6 +40,7 @@
 - 重点关注 `agent/` 目录下的任务规划和工具调用逻辑
 - 记忆模块的向量检索实现值得深入研究（`memory/` 目录）
 - 本地测试主要使用 DeepSeek 模型，成本较低适合实验
+- 工具调用链路：`agent/core.py` → `tools/executor.py`，值得跟踪调试一遍
 
 ## 声明
 
@@ -67,4 +68,4 @@
 
 <a href="https://link-ai.tech" target="_blank"><img width="650" src="https://cdn.link-ai.tech/image/link-ai-intro.jpg"></a>
 
-> [LinkAI](https://link-ai.tech/) 是面向企业和个人的一站式 AI 智能体平台，聚合多模态大模型、知识库、技能、工作流等能力，支持一键接入主流平台并管理，支持 SaaS、私有化部署等多种模式，可免部署在线运行[CowAg
+> [LinkAI](https:
