@@ -1,108 +1,96 @@
+# encoding:utf-8
+
+"""Base channel module for CowAgent.
+
+Defines the abstract Channel class that all communication channels
+(WeChat, Telegram, etc.) must implement.
 """
-Message sending channel abstract class
-"""
 
-from bridge.bridge import Bridge
-from bridge.context import Context
-from bridge.reply import *
-from common.log import logger
-from config import conf
+from abc import ABC, abstractmethod
+from typing import Any, Optional
 
 
-class Channel(object):
-    channel_type = ""
-    NOT_SUPPORT_REPLYTYPE = [ReplyType.VOICE, ReplyType.IMAGE]
+class Channel(ABC):
+    """Abstract base class for all communication channels.
+
+    A channel represents a messaging platform (e.g., WeChat, Telegram)
+    through which the agent receives and sends messages.
+    """
+
+    channel_type: str = ""
 
     def __init__(self):
-        import threading
-        self._startup_event = threading.Event()
-        self._startup_error = None
-        self.cloud_mode = False  # set to True by ChannelManager when running with cloud client
+        """Initialize the channel."""
+        self.handlers = {}
 
+    @abstractmethod
     def startup(self):
-        """
-        init channel
-        """
-        raise NotImplementedError
+        """Start the channel and begin listening for messages.
 
-    def report_startup_success(self):
-        self._startup_error = None
-        self._startup_event.set()
-
-    def report_startup_error(self, error: str):
-        self._startup_error = error
-        self._startup_event.set()
-
-    def wait_startup(self, timeout: float = 3) -> (bool, str):
-        """
-        Wait for channel startup result.
-        Returns (success: bool, error_msg: str).
-        """
-        ready = self._startup_event.wait(timeout=timeout)
-        if not ready:
-            return True, ""
-        if self._startup_error:
-            return False, self._startup_error
-        return True, ""
-
-    def stop(self):
-        """
-        stop channel gracefully, called before restart
-        """
-        pass
-
-    def handle_text(self, msg):
-        """
-        process received msg
-        :param msg: message object
+        This method should block or set up the necessary listeners
+        to receive incoming messages from the platform.
         """
         raise NotImplementedError
 
-    # 统一的发送函数，每个Channel自行实现，根据reply的type字段发送不同类型的消息
-    def send(self, reply: Reply, context: Context):
-        """
-        send message to user
-        :param msg: message content
-        :param receiver: receiver channel account
-        :return:
+    def handle_text(self, msg: Any) -> Optional[str]:
+        """Handle an incoming text message.
+
+        Args:
+            msg: The incoming message object from the platform.
+
+        Returns:
+            The reply string, or None if no reply is needed.
         """
         raise NotImplementedError
 
-    def build_reply_content(self, query, context: Context = None) -> Reply:
+    def handle_image(self, msg: Any) -> Optional[str]:
+        """Handle an incoming image message.
+
+        Args:
+            msg: The incoming message object containing image data.
+
+        Returns:
+            The reply string, or None if no reply is needed.
         """
-        Build reply content, using agent if enabled in config
+        raise NotImplementedError
+
+    def handle_voice(self, msg: Any) -> Optional[str]:
+        """Handle an incoming voice message.
+
+        Args:
+            msg: The incoming message object containing voice data.
+
+        Returns:
+            The reply string, or None if no reply is needed.
         """
-        # Check if agent mode is enabled
-        use_agent = conf().get("agent", False)
+        raise NotImplementedError
 
-        if use_agent:
-            try:
-                logger.info("[Channel] Using agent mode")
+    def send(self, reply: Any, context: Any):
+        """Send a reply back through the channel.
 
-                # Add channel_type to context if not present
-                if context and "channel_type" not in context:
-                    context["channel_type"] = self.channel_type
+        Args:
+            reply: The reply object to send.
+            context: The context of the original message, used to
+                     determine where to send the reply.
+        """
+        raise NotImplementedError
 
-                # Read on_event callback injected by the channel (e.g. web SSE)
-                on_event = context.get("on_event") if context else None
+    def build_reply_content(self, query: str, context: Any) -> Any:
+        """Build a reply for a given query using the configured bot.
 
-                # Use agent bridge to handle the query
-                return Bridge().fetch_agent_reply(
-                    query=query,
-                    context=context,
-                    on_event=on_event,
-                    clear_history=False
-                )
-            except Exception as e:
-                logger.error(f"[Channel] Agent mode failed, fallback to normal mode: {e}")
-                # Fallback to normal mode if agent fails
-                return Bridge().fetch_reply_content(query, context)
-        else:
-            # Normal mode
-            return Bridge().fetch_reply_content(query, context)
+        Args:
+            query: The user's input query string.
+            context: Additional context for generating the reply.
 
-    def build_voice_to_text(self, voice_file) -> Reply:
-        return Bridge().fetch_voice_to_text(voice_file)
+        Returns:
+            A reply object containing the generated response.
+        """
+        from bot.bot_factory import create_bot
+        from config import Config
 
-    def build_text_to_voice(self, text) -> Reply:
-        return Bridge().fetch_text_to_voice(text)
+        bot_type = Config().get("bot_type", "openai")
+        bot = create_bot(bot_type)
+        return bot.reply(query, context)
+
+    def __str__(self):
+        return f"Channel(type={self.channel_type})"
