@@ -12,7 +12,7 @@ default_config = {
     "channel_type": "wx",
 
     # Model provider: openai, azure, zhipuai, moonshot, etc.
-    "model": "gpt-3.5-turbo",
+    "model": "gpt-4o-mini",
 
     # OpenAI API settings
     "open_ai_api_key": "",
@@ -31,7 +31,7 @@ default_config = {
     "conversation_max_tokens": 1000,
     "expires_in_seconds": 3600,
     "character_desc": "You are ChatGPT, a large language model trained by OpenAI.",
-    "temperature": 0.9,
+    "temperature": 0.7,  # lowered from 0.9 for more consistent responses
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0,
@@ -102,20 +102,4 @@ def load_config():
         merged = {**default_config, **file_config}
         config = Config(merged)
         logger.info("[Config] Configuration loaded successfully from config.json")
-    except json.JSONDecodeError as e:
-        logger.error(f"[Config] Failed to parse config.json: {e}")
-        config = Config(default_config)
-    except Exception as e:
-        logger.error(f"[Config] Unexpected error loading config: {e}")
-        config = Config(default_config)
-
-    return config
-
-
-# Global config instance
-config = Config(default_config)
-
-
-def conf():
-    """Return the global configuration instance."""
-    return config
+    
