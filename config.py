@@ -31,7 +31,7 @@ default_config = {
     "conversation_max_tokens": 1000,
     "expires_in_seconds": 3600,
     "character_desc": "You are ChatGPT, a large language model trained by OpenAI.",
-    "temperature": 0.7,  # lowered from 0.9 for more consistent responses
+    "temperature": 0.5,  # lowered for more deterministic, focused responses (personal preference)
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0,
@@ -101,5 +101,4 @@ def load_config():
         # Merge defaults with file config (file config takes precedence)
         merged = {**default_config, **file_config}
         config = Config(merged)
-        logger.info("[Config] Configuration loaded successfully from config.json")
-    
+        logger.info("[Config] Configura
